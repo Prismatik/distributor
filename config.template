@@ -1,0 +1,66 @@
+{{ $names := .Names}}
+{{ $ports := .Ports}}
+
+daemon off;
+events {
+    worker_connections 4000;
+}
+http {
+    client_body_temp_path /tmp/nginx_temp_body;
+    proxy_temp_path /tmp/nginx_temp_proxy;
+    fastcgi_temp_path /tmp/nginx_temp_fastcgi;
+    uwsgi_temp_path /tmp/nginx_temp_uwsgi;
+    scgi_temp_path /tmp/nginx_temp_scgi;
+    server_names_hash_bucket_size 64;
+    default_type application/octet-stream;
+    log_format main '$remote_addr - $remote_user [$time_local] $status '
+                  '"$request" $body_bytes_sent "$http_referer" '
+                  '"$http_user_agent" "http_x_forwarded_for"';
+    sendfile on;
+    tcp_nopush on;
+    tcp_nodelay off;
+    gzip on;
+    gzip_http_version 1.0;
+    gzip_comp_level 2;
+    gzip_proxied any;
+
+    server {
+      listen {{.Healthport}} default_server;
+      location =/health {
+        return 200;
+        access_log off;
+      }
+      location ~* {
+        return 404;
+      }
+    }
+
+    {{range $port := $ports}}
+    server {
+      listen {{$port}} default_server;
+      location ~* {
+        return 404;
+      }
+    }
+
+    {{range $name := $names}}
+    upstream {{$name}} {
+      least_conn;
+      server {{$name}}:{{$port}};
+    }
+    server {
+      listen {{$port}};
+      server_name {{$name}};
+      client_max_body_size 10m;
+      location / {
+        proxy_pass http://{{$name}};
+        proxy_http_version 1.1;
+        proxy_set_header Upgrade $http_upgrade;
+        proxy_set_header Connection "upgrade";
+        proxy_set_header Host $http_host;
+      }
+    }
+    {{end}}
+    {{end}}
+}
+worker_processes 1;
