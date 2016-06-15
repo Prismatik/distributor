@@ -1,5 +1,4 @@
-{{ $names := .Names}}
-{{ $ports := .Ports}}
+{{ $listenport := .Listenport}}
 
 daemon off;
 events {
@@ -35,32 +34,30 @@ http {
       }
     }
 
-    {{range $port := $ports}}
     server {
-      listen {{$port}} default_server;
+      listen {{$listenport}} default_server;
       location ~* {
         return 404;
       }
     }
 
-    {{range $name := $names}}
-    upstream {{$name}}-{{$port}} {
+    {{range $server := .Servers}}
+    upstream {{$server.Name}} {
       least_conn;
-      server {{$name}}:{{$port}};
+      server {{$server.Name}}:{{$server.Port}};
     }
     server {
-      listen {{$port}};
-      server_name {{$name}}-{{$port}};
+      listen {{$listenport}};
+      server_name {{$server.Name}};
       client_max_body_size 10m;
       location / {
-        proxy_pass http://{{$name}};
+        proxy_pass http://{{$server.Name}};
         proxy_http_version 1.1;
         proxy_set_header Upgrade $http_upgrade;
         proxy_set_header Connection "upgrade";
         proxy_set_header Host $http_host;
       }
     }
-    {{end}}
     {{end}}
 }
 worker_processes 1;
