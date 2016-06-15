@@ -19,9 +19,10 @@ func main() {
 		Servers    Servers
 		Healthport string
 		Listenport string
+		Domain     string
 	}
 
-	required_env.Ensure(map[string]string{"HEALTH_PORT": "", "LISTEN_PORT": ""})
+	required_env.Ensure(map[string]string{"HEALTH_PORT": "", "LISTEN_PORT": "", "DOMAIN": ""})
 
 	re := regexp.MustCompile("DISTRIBUTOR_*")
 
@@ -51,6 +52,7 @@ func main() {
 
 	healthport := os.Getenv("HEALTH_PORT")
 	listenport := os.Getenv("LISTEN_PORT")
+	domain := os.Getenv("DOMAIN")
 
 	config, err := template.New("config.template").ParseFiles("config.template")
 
@@ -58,7 +60,7 @@ func main() {
 		panic(err)
 	}
 
-	conf := TemplateConfig{servers, healthport, listenport}
+	conf := TemplateConfig{servers, healthport, listenport, domain}
 
 	err = config.Execute(os.Stdout, conf)
 	if err != nil {

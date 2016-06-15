@@ -1,4 +1,5 @@
 {{ $listenport := .Listenport}}
+{{ $domain := .Domain}}
 
 daemon off;
 events {
@@ -48,7 +49,7 @@ http {
     }
     server {
       listen {{$listenport}};
-      server_name {{$server.Name}};
+      server_name {{$server.Name}}{{$domain}};
       client_max_body_size 10m;
       location / {
         proxy_pass http://{{$server.Name}};
