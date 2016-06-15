@@ -1,7 +1,6 @@
 package main
 
 import (
-	"fmt"
 	"github.com/davidbanham/required_env"
 	"log"
 	"os"
@@ -53,8 +52,6 @@ func main() {
 	healthport := os.Getenv("HEALTH_PORT")
 	listenport := os.Getenv("LISTEN_PORT")
 
-	fmt.Println(servers)
-	fmt.Println(healthport)
 	config, err := template.New("config.template").ParseFiles("config.template")
 
 	if err != nil {
