@@ -3,6 +3,7 @@ package main
 import (
 	"fmt"
 	"github.com/davidbanham/required_env"
+	"log"
 	"os"
 	"regexp"
 	"strings"
@@ -27,15 +28,28 @@ func main() {
 
 	servers := Servers{}
 	for _, env := range os.Environ() {
-		if !re.MatchString(env) {
+		loc := re.FindStringIndex(env)
+		if loc == nil {
 			continue
 		}
 
-		val := strings.Split(env, "=")
-		split := strings.Split(val[1], ",")
-		server := Server{split[0], split[1]}
+		strippedEnv := env[loc[1]:]
+
+		vals := strings.Split(strippedEnv, "=")
+		envArgs := strings.Split(vals[1], ",")
+
+		name, port := envArgs[0], envArgs[1]
+
+		suffix := vals[0]
+
+		if strings.ToLower(name) != strings.ToLower(suffix) {
+			log.Panicf("Server %s is malformed. %s should be %s", name, suffix, strings.ToUpper(name))
+		}
+
+		server := Server{name, port}
 		servers = append(servers, server)
 	}
+
 	healthport := os.Getenv("HEALTH_PORT")
 	listenport := os.Getenv("LISTEN_PORT")
 
