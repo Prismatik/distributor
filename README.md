@@ -51,7 +51,7 @@ docker run \
 -e HEALTH_PORT=3000 \
 -e DOMAIN=example.com \
 -e DISTRIBUTOR_OHAI=ohai,4000 \
-Prismatik/distributor
+prismatik/distributor
 ```
 
 Or in docker-compose speak:
@@ -60,7 +60,7 @@ Or in docker-compose speak:
 version: '2'
 services:
   test:
-    image: Prismatik/distributor
+    image: prismatik/distributor
     environment:
       HEALTH_PORT: 3001
       LISTEN_PORT: 3000
